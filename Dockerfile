@@ -1,5 +1,4 @@
-FROM docker.juspay.io/juspaydotin/hyperswitch-router:v1.121.0-standalone
-
+FROM docker pull juspaydotin/hyperswitch-router:2026.07.24.0-standalone
 USER root
 
 RUN apt-get update \
