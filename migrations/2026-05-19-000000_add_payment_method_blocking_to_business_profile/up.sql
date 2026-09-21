@@ -1,0 +1,2 @@
+ALTER TABLE business_profile
+ADD COLUMN IF NOT EXISTS payment_method_blocking JSONB;
