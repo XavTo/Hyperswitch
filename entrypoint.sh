@@ -57,7 +57,7 @@ export LC_ALL=C
 for migration_path in "$migrations_dir"/*/; do
     [ -f "${migration_path}up.sql" ] || continue
     version=$(basename "$migration_path")
-    if [[ ! "$version" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+    if [[ ! "$version" =~ ^[a-zA-Z0-9_.-]+$ ]]; then
         echo "Invalid migration directory name." >&2
         exit 1
     fi
