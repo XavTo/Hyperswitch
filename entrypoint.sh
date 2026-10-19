@@ -93,4 +93,33 @@ done
 rm -f "$sql_file"
 trap - EXIT
 echo "Starting Hyperswitch router."
-exec /local/bin/router -f /local/config/docker_compose.toml
+# Upstream standalone router returns exit code 1 ("I/O: Server shut down")
+# after its graceful SIGTERM path. Keep intentional stops successful while
+# preserving unexpected crashes and forced kills as failures.
+stop_requested=0
+router_pid=
+forward_shutdown() {
+    stop_requested=1
+    if [ -n "$router_pid" ]; then
+        kill -TERM "$router_pid" 2>/dev/null || true
+    fi
+}
+trap forward_shutdown TERM INT
+/local/bin/router -f /local/config/docker_compose.toml &
+router_pid=$!
+set +e
+wait "$router_pid"
+router_status=$?
+if (( stop_requested )); then
+    # The first wait can be interrupted by the trap before the child exits.
+    wait "$router_pid"
+    final_status=$?
+    if (( final_status != 127 )); then
+        router_status=$final_status
+    fi
+    if (( router_status == 0 || router_status == 1 || router_status == 143 || router_status == 130 )); then
+        echo "Hyperswitch router stopped by request."
+        exit 0
+    fi
+fi
+exit "$router_status"
